@@ -1,7 +1,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Points, Vector3, AdditiveBlending, BufferAttribute } from 'three';
-import { PHYSICS, COLORS } from '../constants';
+import { PHYSICS, COLORS } from '../../constants';
 
 interface GoldDustProps {
   count: number;

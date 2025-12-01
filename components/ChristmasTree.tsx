@@ -1,9 +1,10 @@
 import React, { useMemo, useRef, useLayoutEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { InstancedMesh, Object3D, Vector3, Group } from 'three';
-import { CONFIG, COLORS } from '../constants';
-import { TreeState, DualPosition, PhotoOrnamentData } from '../types';
+import { InstancedMesh, Object3D, Vector3 } from 'three';
+import { CONFIG, COLORS } from '../../constants';
+import { TreeState, DualPosition, PhotoOrnamentData } from '../../types';
+import { PhotoOrnaments } from './PhotoOrnaments';
 
 interface ChristmasTreeProps {
   treeState: TreeState;
@@ -50,7 +51,6 @@ const generateOrnamentData = (count: number): DualPosition[] => {
   const spread = 30;
 
   for (let i = 0; i < count; i++) {
-    // More random distribution ON the cone surface
     const y = (Math.random()) * CONFIG.TREE_HEIGHT - (CONFIG.TREE_HEIGHT / 2);
     const progress = (y + CONFIG.TREE_HEIGHT / 2) / CONFIG.TREE_HEIGHT;
     const radius = CONFIG.TREE_RADIUS * (1 - progress) + 0.2; // Slightly outside foliage
@@ -77,69 +77,6 @@ const generateOrnamentData = (count: number): DualPosition[] => {
   return data;
 };
 
-// Component for Individual Photo Ornament
-const FramedPhoto: React.FC<{ data: PhotoOrnamentData; treeState: TreeState }> = ({ data, treeState }) => {
-  const groupRef = useRef<Group>(null);
-  const position = useRef(new Vector3().copy(data.targetPos));
-  const randomOffset = useRef(Math.random() * 100);
-
-  useFrame((state, delta) => {
-    if (!groupRef.current) return;
-
-    const isFormed = treeState === TreeState.FORMED;
-    const lerpFactor = THREE.MathUtils.clamp(delta * 2.0, 0, 1);
-    
-    // Position Lerp
-    const dest = isFormed ? data.targetPos : data.chaosPos;
-    position.current.lerp(dest, lerpFactor);
-    groupRef.current.position.copy(position.current);
-
-    // Orientation Logic
-    if (isFormed) {
-      // Look away from center when formed
-      groupRef.current.lookAt(0, position.current.y, 0);
-      // Flip so photo faces out (lookAt points Z towards target, we want Z away)
-      groupRef.current.rotateY(Math.PI);
-      
-      // Gentle Sway animation
-      const t = state.clock.elapsedTime + randomOffset.current;
-      groupRef.current.rotation.z += Math.sin(t) * 0.005; 
-      groupRef.current.rotation.x += Math.cos(t * 0.8) * 0.005;
-    } else {
-      // Random rotation in chaos
-      groupRef.current.rotation.x += delta * 0.5;
-      groupRef.current.rotation.y += delta * 0.5;
-    }
-  });
-
-  // Calculate Frame dimensions
-  const frameWidth = 1.2;
-  const frameHeight = frameWidth / data.aspectRatio + 0.2; // Add some bezel height
-  const photoHeight = frameWidth / data.aspectRatio;
-
-  return (
-    <group ref={groupRef}>
-      {/* Gold Frame */}
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[frameWidth, frameHeight, 0.1]} />
-        <meshStandardMaterial 
-          color={COLORS.GOLD} 
-          metalness={1.0} 
-          roughness={0.1}
-          emissive={COLORS.GOLD}
-          emissiveIntensity={0.2} // Bloom effect
-        />
-      </mesh>
-
-      {/* The Photo */}
-      <mesh position={[0, 0, 0.06]}>
-        <planeGeometry args={[frameWidth - 0.1, photoHeight - 0.1]} />
-        <meshBasicMaterial map={data.texture} toneMapped={false} />
-      </mesh>
-    </group>
-  );
-};
-
 export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPhotos }) => {
   const foliageRef = useRef<InstancedMesh>(null);
   const ornamentsRef = useRef<InstancedMesh>(null);
@@ -149,7 +86,6 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
   const foliageData = useMemo(() => generateFoliageData(CONFIG.PARTICLE_COUNT), []);
   const ornamentData = useMemo(() => generateOrnamentData(CONFIG.ORNAMENT_COUNT), []);
 
-  // Temporary object for matrix calculations
   const dummy = useMemo(() => new Object3D(), []);
 
   // Initialize Colors
@@ -170,23 +106,19 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
 
   // Animation Loop
   useFrame((state, delta) => {
-    const isFormed = treeState === TreeState.FORMED;
-    const lerpFactor = THREE.MathUtils.clamp(delta * 2.5, 0, 1); // Speed of transition
+    // Treat TREE and GALLERY as "Formed" states for the base tree
+    const isFormed = treeState !== TreeState.CHAOS;
+    const lerpFactor = THREE.MathUtils.clamp(delta * 2.5, 0, 1);
 
     // Animate Foliage
     if (foliageRef.current) {
       foliageData.forEach((data, i) => {
-        // Get current matrix
         foliageRef.current!.getMatrixAt(i, dummy.matrix);
         dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
 
-        // Calculate destination
         const dest = isFormed ? data.target : data.chaos;
-        
-        // Lerp position
         dummy.position.lerp(dest, lerpFactor);
         
-        // Add subtle rotation for sparkle effect
         if (isFormed) {
             dummy.rotation.x += Math.sin(state.clock.elapsedTime + i) * 0.002;
             dummy.rotation.y += Math.cos(state.clock.elapsedTime + i) * 0.002;
@@ -209,7 +141,6 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
         dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
         
         const dest = isFormed ? data.target : data.chaos;
-        // Ornaments move slightly slower/heavier
         dummy.position.lerp(dest, lerpFactor * 0.8);
         
         dummy.scale.setScalar(data.scale);
@@ -223,20 +154,20 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
     if (starRef.current) {
         const starTarget = new Vector3(0, CONFIG.TREE_HEIGHT / 2 + 1, 0);
         const starChaos = new Vector3(0, 30, 0);
-        
         const dest = isFormed ? starTarget : starChaos;
+        
         starRef.current.position.lerp(dest, lerpFactor * 0.5);
         starRef.current.rotation.y += 0.01;
         
-        // Scale down if chaos
         const targetScale = isFormed ? 1.5 : 0.1;
         starRef.current.scale.lerp(new Vector3(targetScale, targetScale, targetScale), lerpFactor);
     }
   });
 
   return (
-    <group position={[0, -2, 0]}>
-      {/* Foliage: Tetrahedron gives a nice "needle" look vs Box */}
+    // Raised tree to 0,0,0 (originally -2) to give spiral more room and center it better
+    <group position={[0, 0, 0]}>
+      {/* Foliage */}
       <instancedMesh ref={foliageRef} args={[undefined, undefined, CONFIG.PARTICLE_COUNT]} castShadow receiveShadow>
         <tetrahedronGeometry args={[0.2, 0]} />
         <meshStandardMaterial 
@@ -247,7 +178,7 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
         />
       </instancedMesh>
 
-      {/* Ornaments: Spheres */}
+      {/* Standard Ornaments */}
       <instancedMesh ref={ornamentsRef} args={[undefined, undefined, CONFIG.ORNAMENT_COUNT]} castShadow>
         <sphereGeometry args={[0.5, 16, 16]} />
         <meshStandardMaterial 
@@ -257,10 +188,8 @@ export const ChristmasTree: React.FC<ChristmasTreeProps> = ({ treeState, userPho
         />
       </instancedMesh>
 
-      {/* User Uploaded Photos */}
-      {userPhotos.map((photo) => (
-        <FramedPhoto key={photo.id} data={photo} treeState={treeState} />
-      ))}
+      {/* New Photo Ornament System */}
+      <PhotoOrnaments photos={userPhotos} treeState={treeState} />
 
       {/* The Star */}
       <group ref={starRef}>

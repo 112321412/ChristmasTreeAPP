@@ -3,16 +3,17 @@ import { Environment, PerspectiveCamera } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { ChristmasTree } from './ChristmasTree';
 import { GoldDust } from './GoldDust';
-import { InteractiveRotator } from './InteractiveRotator';
-import { TreeState, PhotoOrnamentData } from '../types';
-import { COLORS } from '../constants';
+import { InteractiveRotator, InteractiveRotatorRef } from './InteractiveRotator';
+import { TreeState, PhotoOrnamentData } from '../../types';
+import { COLORS } from '../../constants';
 
 interface SceneProps {
   treeState: TreeState;
   userPhotos: PhotoOrnamentData[];
+  rotatorRef: React.RefObject<InteractiveRotatorRef>;
 }
 
-export const Scene: React.FC<SceneProps> = ({ treeState, userPhotos }) => {
+export const Scene: React.FC<SceneProps> = ({ treeState, userPhotos, rotatorRef }) => {
   return (
     <>
       <PerspectiveCamera makeDefault position={[0, 4, 22]} />
@@ -34,7 +35,7 @@ export const Scene: React.FC<SceneProps> = ({ treeState, userPhotos }) => {
       <pointLight position={[0, -5, 5]} intensity={0.5} color={COLORS.RUBY} />
 
       {/* Interactive Container for the Tree */}
-      <InteractiveRotator>
+      <InteractiveRotator ref={rotatorRef}>
         <ChristmasTree treeState={treeState} userPhotos={userPhotos} />
       </InteractiveRotator>
 
@@ -42,7 +43,7 @@ export const Scene: React.FC<SceneProps> = ({ treeState, userPhotos }) => {
       <GoldDust count={1500} />
 
       {/* Post Processing for the "Golden Glow" */}
-      <EffectComposer disableNormalPass>
+      <EffectComposer enableNormalPass={false}>
         <Bloom 
           luminanceThreshold={0.8} 
           mipmapBlur 

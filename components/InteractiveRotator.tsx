@@ -1,18 +1,28 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Group } from 'three';
-import { PHYSICS } from '../constants';
+import { PHYSICS } from '../../constants';
 
 interface InteractiveRotatorProps {
   children: React.ReactNode;
 }
 
-export const InteractiveRotator: React.FC<InteractiveRotatorProps> = ({ children }) => {
+export interface InteractiveRotatorRef {
+  addVelocity: (amount: number) => void;
+}
+
+export const InteractiveRotator = forwardRef<InteractiveRotatorRef, InteractiveRotatorProps>(({ children }, ref) => {
   const groupRef = useRef<Group>(null);
   const [isDragging, setIsDragging] = useState(false);
   const velocity = useRef(0);
   const lastX = useRef(0);
   const { gl } = useThree();
+
+  useImperativeHandle(ref, () => ({
+    addVelocity: (amount: number) => {
+      velocity.current += amount;
+    }
+  }));
 
   const handlePointerDown = (e: React.PointerEvent) => {
     e.stopPropagation(); // Prevent hitting objects behind
@@ -79,4 +89,6 @@ export const InteractiveRotator: React.FC<InteractiveRotatorProps> = ({ children
       {children}
     </group>
   );
-};
+});
+
+InteractiveRotator.displayName = 'InteractiveRotator';

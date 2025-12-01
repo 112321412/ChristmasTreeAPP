@@ -10,7 +10,8 @@ export interface ParticleData {
 
 export enum TreeState {
   CHAOS = 'CHAOS',
-  FORMED = 'FORMED'
+  TREE = 'TREE',
+  GALLERY = 'GALLERY'
 }
 
 export interface DualPosition {
@@ -26,5 +27,7 @@ export interface PhotoOrnamentData {
   texture: Texture;
   aspectRatio: number;
   chaosPos: Vector3;
-  targetPos: Vector3;
+  treePos: Vector3;
+  spiralPos: Vector3;
+  scale: number;
 }

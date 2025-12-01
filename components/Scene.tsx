@@ -4,8 +4,8 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import { ChristmasTree } from './ChristmasTree';
 import { GoldDust } from './GoldDust';
 import { InteractiveRotator } from './InteractiveRotator';
-import { TreeState, PhotoOrnamentData } from '../../types';
-import { COLORS } from '../../constants';
+import { TreeState, PhotoOrnamentData } from '../types';
+import { COLORS } from '../constants';
 
 interface SceneProps {
   treeState: TreeState;

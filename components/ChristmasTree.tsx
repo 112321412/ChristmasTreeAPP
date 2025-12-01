@@ -2,8 +2,8 @@ import React, { useMemo, useRef, useLayoutEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { InstancedMesh, Object3D, Vector3, Group } from 'three';
-import { CONFIG, COLORS } from '../../constants';
-import { TreeState, DualPosition, PhotoOrnamentData } from '../../types';
+import { CONFIG, COLORS } from '../constants';
+import { TreeState, DualPosition, PhotoOrnamentData } from '../types';
 
 interface ChristmasTreeProps {
   treeState: TreeState;

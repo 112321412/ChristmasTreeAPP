@@ -1,0 +1,21 @@
+{
+  "name": "Grand Luxury Interactive Christmas Tree",
+  "short_name": "Luxury Tree",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#051a12",
+  "theme_color": "#FFD700",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/051a12/FFD700/png?text=Tree",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://placehold.co/512x512/051a12/FFD700/png?text=Tree",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

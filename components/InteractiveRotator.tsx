@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Group } from 'three';
-import { PHYSICS } from '../../constants';
+import { PHYSICS } from '../constants';
 
 interface InteractiveRotatorProps {
   children: React.ReactNode;

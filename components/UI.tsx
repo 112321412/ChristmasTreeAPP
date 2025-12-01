@@ -1,5 +1,5 @@
 import React from 'react';
-import { TreeState, PhotoOrnamentData } from '../../types';
+import { TreeState, PhotoOrnamentData } from '../types';
 import { PhotoUploader } from './PhotoUploader';
 
 interface UIProps {
